@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#120d20">
+  <meta name="description" content="Chronicle — a quiet, time-aware journal for thoughts, plans and everyday notes.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23c981ff'/%3E%3Cstop offset='1' stop-color='%23ff6ea8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='%23120d20'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='url(%23g)' stroke-width='4'/%3E%3Cpath d='M32 21v12l8 5' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <title>Chronicle — Thoughts in Time</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+    <div class="grain"></div>
+
+    <aside class="sidebar" id="sidebar" aria-label="Notebook sidebar">
+      <div class="brand-row">
+        <div class="brand-mark" aria-hidden="true"><span></span></div>
+        <div>
+          <div class="brand-name">Chronicle</div>
+          <div class="brand-sub">thoughts in time</div>
+        </div>
+        <button class="icon-button mobile-only" id="closeSidebarBtn" title="Close menu" aria-label="Close menu">×</button>
+      </div>
+
+      <button class="new-notebook primary-button" id="newNotebookBtn">
+        <span class="plus">+</span>
+        <span>New notebook</span>
+      </button>
+
+      <div class="sidebar-section">
+        <div class="section-label">Notebooks</div>
+        <div class="notebook-list" id="notebookList"></div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button class="sidebar-action" id="searchBtn"><span>⌕</span><span>Search</span><kbd>⌘K</kbd></button>
+        <button class="sidebar-action" id="exportBtn"><span>↗</span><span>Export</span></button>
+        <label class="sidebar-action import-label" for="importInput"><span>↙</span><span>Import</span><input id="importInput" type="file" accept="application/json,.json"></label>
+        <button class="sidebar-action" id="settingsBtn"><span>⚙</span><span>Settings</span></button>
+      </div>
+      <div class="sidebar-footnote">Everything stays on this device.</div>
+    </aside>
+
+    <main class="main-stage">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button mobile-only" id="openSidebarBtn" title="Open notebooks" aria-label="Open notebooks">☰</button>
+          <div class="notebook-title-wrap">
+            <div class="eyebrow" id="dateEyebrow">TODAY</div>
+            <h1 id="notebookTitle">Daily Thoughts</h1>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="clock-pill" id="clockToggle" title="Hide clock">
+            <span class="clock-dot"></span>
+            <span class="clock-text" id="clockText">08:53:00 PM</span>
+            <span class="clock-caret">⌄</span>
+          </button>
+          <button class="icon-button" id="moreBtn" title="More actions" aria-label="More actions">•••</button>
+        </div>
+      </header>
+
+      <section class="workspace" aria-label="Writing workspace">
+        <div class="journal-wrap">
+          <div class="journal-head">
+            <div>
+              <div class="journal-kicker" id="entryCount">0 thoughts</div>
+              <div class="journal-intro">Write whatever is here. The moment gets remembered.</div>
+            </div>
+            <div class="save-status" id="saveStatus"><span class="save-dot"></span><span>Saved</span></div>
+          </div>
+
+          <div class="timeline" id="timeline" aria-live="polite"></div>
+
+          <div class="composer-hint" id="composerHint">
+            <span class="hint-key">Enter</span> new thought <span class="hint-sep">·</span> <span class="hint-key">Shift + Enter</span> line break
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="overlay" id="overlay" hidden></div>
+
+  <section class="modal" id="searchModal" hidden aria-modal="true" role="dialog" aria-labelledby="searchTitle">
+    <div class="modal-head">
+      <div><div class="eyebrow">FIND</div><h2 id="searchTitle">Search your notes</h2></div>
+      <button class="icon-button" data-close-modal="searchModal" aria-label="Close">×</button>
+    </div>
+    <div class="search-box"><span>⌕</span><input id="searchInput" placeholder="Search across every notebook…" autocomplete="off"></div>
+    <div class="search-results" id="searchResults"></div>
+  </section>
+
+  <section class="modal settings-modal" id="settingsModal" hidden aria-modal="true" role="dialog" aria-labelledby="settingsTitle">
+    <div class="modal-head">
+      <div><div class="eyebrow">PERSONALISE</div><h2 id="settingsTitle">Settings</h2></div>
+      <button class="icon-button" data-close-modal="settingsModal" aria-label="Close">×</button>
+    </div>
+    <div class="settings-grid">
+      <div class="setting-card">
+        <div><strong>Live clock</strong><span>Show the current time above your journal.</span></div>
+        <label class="switch"><input type="checkbox" id="settingClock"><span></span></label>
+      </div>
+      <div class="setting-card">
+        <div><strong>24-hour time</strong><span>Use 18:42 instead of 06:42 PM.</span></div>
+        <label class="switch"><input type="checkbox" id="setting24h"><span></span></label>
+      </div>
+      <div class="setting-card">
+        <div><strong>Gentle prompts</strong><span>Show writing guidance below the timeline.</span></div>
+        <label class="switch"><input type="checkbox" id="settingPrompt"><span></span></label>
+      </div>
+    </div>
+    <div class="theme-section">
+      <div class="section-label">Theme</div>
+      <div class="theme-grid" id="themeGrid">
+        <button class="theme-chip" data-theme="mystic"><span class="theme-swatch mystic-swatch"></span>Mystic</button>
+        <button class="theme-chip" data-theme="midnight"><span class="theme-swatch midnight-swatch"></span>Midnight</button>
+        <button class="theme-chip" data-theme="forest"><span class="theme-swatch forest-swatch"></span>Forest</button>
+        <button class="theme-chip" data-theme="ocean"><span class="theme-swatch ocean-swatch"></span>Ocean</button>
+        <button class="theme-chip" data-theme="sunset"><span class="theme-swatch sunset-swatch"></span>Sunset</button>
+        <button class="theme-chip" data-theme="minimal"><span class="theme-swatch minimal-swatch"></span>Minimal</button>
+      </div>
+    </div>
+    <div class="danger-zone">
+      <button class="ghost-button" id="clearAllBtn">Clear all local data</button>
+    </div>
+  </section>
+
+  <section class="modal small-modal" id="notebookModal" hidden aria-modal="true" role="dialog" aria-labelledby="notebookModalTitle">
+    <div class="modal-head">
+      <div><div class="eyebrow">NOTEBOOK</div><h2 id="notebookModalTitle">New notebook</h2></div>
+      <button class="icon-button" data-close-modal="notebookModal" aria-label="Close">×</button>
+    </div>
+    <label class="field-label" for="notebookNameInput">Name</label>
+    <input class="modal-input" id="notebookNameInput" maxlength="50" placeholder="e.g. Daily Thoughts" autocomplete="off">
+    <div class="modal-actions"><button class="ghost-button" data-close-modal="notebookModal">Cancel</button><button class="primary-button" id="saveNotebookBtn">Create notebook</button></div>
+  </section>
+
+  <section class="context-menu" id="contextMenu" hidden>
+    <button data-menu-action="rename">Rename notebook</button>
+    <button data-menu-action="duplicate">Duplicate notebook</button>
+    <button data-menu-action="delete" class="danger">Delete notebook</button>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
